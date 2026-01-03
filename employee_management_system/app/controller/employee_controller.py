@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.service.employee_service import EmployeeService
+from datetime import date
 
 employee_bp = Blueprint('employee_bp', __name__)
 
@@ -18,6 +19,11 @@ def format_employee(e):
 def add_employee():
     try:
         data = request.get_json()
+        
+        # Dynamic date_joined: use today if not provided
+        if 'date_joined' not in data or not data['date_joined']:
+            data['date_joined'] = date.today().strftime('%Y-%m-%d')
+
         employee = EmployeeService.create_employee(data)
         return jsonify(format_employee(employee)), 201  # 201 Created
     except ValueError as e:
@@ -43,6 +49,11 @@ def get_employee(emp_id):
 def update_employee(emp_id):
     try:
         data = request.get_json()
+        
+        # Optional: if date_joined not provided during update, keep current value
+        if 'date_joined' in data and not data['date_joined']:
+            data['date_joined'] = date.today().strftime('%Y-%m-%d')
+
         employee = EmployeeService.update_employee(emp_id, data)
         return jsonify(format_employee(employee)), 200
     except ValueError as e:
